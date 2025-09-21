@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, PenTool, Home, User, Menu, X, LogOut } from "lucide-react";
+import { Search, PenTool, Home, User, Menu, X, LogOut, FileText, Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const Navigation = () => {
@@ -13,6 +13,10 @@ const Navigation = () => {
     { name: "Home", href: "/", icon: Home },
     { name: "Search", href: "/search", icon: Search },
     { name: "Blogs", href: "/blogs", icon: PenTool },
+    ...(user ? [
+      { name: "My Blogs", href: "/my-blogs", icon: FileText },
+      { name: "Write", href: "/write-blog", icon: Plus },
+    ] : []),
     { name: "Dashboard", href: "/dashboard", icon: User },
   ];
 

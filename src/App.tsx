@@ -9,6 +9,9 @@ import Index from "./pages/Index";
 import Search from "./pages/Search";
 import Blogs from "./pages/Blogs";
 import Dashboard from "./pages/Dashboard";
+import BlogDashboard from "./pages/BlogDashboard";
+import WriteBlog from "./pages/WriteBlog";
+import BlogDetail from "./pages/BlogDetail";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +34,17 @@ const App = () => (
                 <Dashboard />
               </ProtectedRoute>
             } />
+            <Route path="/my-blogs" element={
+              <ProtectedRoute>
+                <BlogDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/write-blog" element={
+              <ProtectedRoute>
+                <WriteBlog />
+              </ProtectedRoute>
+            } />
+            <Route path="/blog/:slug" element={<BlogDetail />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

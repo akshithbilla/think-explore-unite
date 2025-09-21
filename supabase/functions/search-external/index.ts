@@ -73,56 +73,137 @@ serve(async (req) => {
 });
 
 async function searchNews(query: string, limit: number) {
-  // Mock news results - replace with actual NewsAPI integration
-  return Array.from({ length: Math.min(limit, 5) }, (_, i) => ({
-    id: `news-${i}`,
-    title: `${query} News Article ${i + 1}`,
-    description: `This is a news article about ${query}. Lorem ipsum dolor sit amet, consectetur adipiscing elit.`,
-    url: `https://example-news.com/article-${i}`,
-    thumbnail: `https://picsum.photos/400/300?random=${i}`,
-    source: 'Example News',
-    publishedAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
-  }));
+  try {
+    const response = await fetch(`https://nexus-search.onrender.com/api/searchNews?query=${encodeURIComponent(query)}&limit=${limit}`);
+    if (!response.ok) {
+      throw new Error(`News API error: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.results || data || [];
+  } catch (error) {
+    console.error('News search error:', error);
+    // Fallback to mock data
+    return Array.from({ length: Math.min(limit, 5) }, (_, i) => ({
+      id: `news-${i}`,
+      title: `${query} News Article ${i + 1}`,
+      description: `This is a news article about ${query}. Lorem ipsum dolor sit amet, consectetur adipiscing elit.`,
+      url: `https://example-news.com/article-${i}`,
+      thumbnail: `https://picsum.photos/400/300?random=${i}`,
+      source: 'Example News',
+      publishedAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
+    }));
+  }
 }
 
 async function searchImages(query: string, limit: number) {
-  // Mock image results - replace with actual Unsplash/Pexels API integration
-  return Array.from({ length: Math.min(limit, 8) }, (_, i) => ({
-    id: `image-${i}`,
-    title: `${query} Image ${i + 1}`,
-    url: `https://picsum.photos/400/300?random=${i + 100}`,
-    thumbnail: `https://picsum.photos/200/150?random=${i + 100}`,
-    source: 'Picsum Photos',
-    photographer: `Photographer ${i + 1}`,
-  }));
+  try {
+    const response = await fetch(`https://nexus-search.onrender.com/api/searchImages?query=${encodeURIComponent(query)}&limit=${limit}`);
+    if (!response.ok) {
+      throw new Error(`Images API error: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.results || data || [];
+  } catch (error) {
+    console.error('Images search error:', error);
+    // Fallback to mock data
+    return Array.from({ length: Math.min(limit, 8) }, (_, i) => ({
+      id: `image-${i}`,
+      title: `${query} Image ${i + 1}`,
+      url: `https://picsum.photos/400/300?random=${i + 100}`,
+      thumbnail: `https://picsum.photos/200/150?random=${i + 100}`,
+      source: 'Picsum Photos',
+      photographer: `Photographer ${i + 1}`,
+    }));
+  }
 }
 
 async function searchVideos(query: string, limit: number) {
-  // Mock video results - replace with actual YouTube API integration
-  return Array.from({ length: Math.min(limit, 6) }, (_, i) => ({
-    id: `video-${i}`,
-    title: `${query} Video ${i + 1}`,
-    description: `A video about ${query}. This is a mock description for demonstration purposes.`,
-    url: `https://example-video.com/watch?v=${i}`,
-    thumbnail: `https://picsum.photos/480/360?random=${i + 200}`,
-    source: 'Example Video Platform',
-    duration: `${Math.floor(Math.random() * 10) + 1}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`,
-    views: Math.floor(Math.random() * 1000000),
-    publishedAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
-  }));
+  try {
+    const response = await fetch(`https://nexus-search.onrender.com/api/youtube/search?query=${encodeURIComponent(query)}&limit=${limit}`);
+    if (!response.ok) {
+      throw new Error(`YouTube API error: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.results || data || [];
+  } catch (error) {
+    console.error('Videos search error:', error);
+    // Fallback to mock data
+    return Array.from({ length: Math.min(limit, 6) }, (_, i) => ({
+      id: `video-${i}`,
+      title: `${query} Video ${i + 1}`,
+      description: `A video about ${query}. This is a mock description for demonstration purposes.`,
+      url: `https://example-video.com/watch?v=${i}`,
+      thumbnail: `https://picsum.photos/480/360?random=${i + 200}`,
+      source: 'Example Video Platform',
+      duration: `${Math.floor(Math.random() * 10) + 1}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`,
+      views: Math.floor(Math.random() * 1000000),
+      publishedAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
+    }));
+  }
 }
 
 async function searchMusic(query: string, limit: number) {
-  // Mock music results - replace with actual Spotify/Deezer API integration
-  return Array.from({ length: Math.min(limit, 8) }, (_, i) => ({
-    id: `music-${i}`,
-    title: `${query} Song ${i + 1}`,
-    artist: `Artist ${i + 1}`,
-    album: `Album ${i + 1}`,
-    url: `https://example-music.com/track/${i}`,
-    thumbnail: `https://picsum.photos/300/300?random=${i + 300}`,
-    source: 'Example Music Platform',
-    duration: `${Math.floor(Math.random() * 5) + 2}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`,
-    releaseDate: new Date(Date.now() - i * 30 * 24 * 60 * 60 * 1000).toISOString(),
-  }));
+  try {
+    // Use Gemini API for music search
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyBgGGMjRi95r9IcSpLEUaF8EUIQ3bpHO50`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `Search for music related to "${query}". Return a JSON array of ${limit} music results with the following structure: [{"id": "unique_id", "title": "song_title", "artist": "artist_name", "album": "album_name", "url": "spotify_url", "thumbnail": "album_cover_url", "source": "Spotify", "duration": "3:45", "releaseDate": "2023-01-01"}]`
+          }]
+        }]
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Gemini API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    
+    if (content) {
+      try {
+        // Extract JSON from the response
+        const jsonMatch = content.match(/\[.*\]/s);
+        if (jsonMatch) {
+          const musicResults = JSON.parse(jsonMatch[0]);
+          return Array.isArray(musicResults) ? musicResults : [];
+        }
+      } catch (parseError) {
+        console.error('Error parsing Gemini response:', parseError);
+      }
+    }
+
+    // Fallback to mock data
+    return Array.from({ length: Math.min(limit, 8) }, (_, i) => ({
+      id: `music-${i}`,
+      title: `${query} Song ${i + 1}`,
+      artist: `Artist ${i + 1}`,
+      album: `Album ${i + 1}`,
+      url: `https://example-music.com/track/${i}`,
+      thumbnail: `https://picsum.photos/300/300?random=${i + 300}`,
+      source: 'Example Music Platform',
+      duration: `${Math.floor(Math.random() * 5) + 2}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`,
+      releaseDate: new Date(Date.now() - i * 30 * 24 * 60 * 60 * 1000).toISOString(),
+    }));
+  } catch (error) {
+    console.error('Music search error:', error);
+    // Fallback to mock data
+    return Array.from({ length: Math.min(limit, 8) }, (_, i) => ({
+      id: `music-${i}`,
+      title: `${query} Song ${i + 1}`,
+      artist: `Artist ${i + 1}`,
+      album: `Album ${i + 1}`,
+      url: `https://example-music.com/track/${i}`,
+      thumbnail: `https://picsum.photos/300/300?random=${i + 300}`,
+      source: 'Example Music Platform',
+      duration: `${Math.floor(Math.random() * 5) + 2}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`,
+      releaseDate: new Date(Date.now() - i * 30 * 24 * 60 * 60 * 1000).toISOString(),
+    }));
+  }
 }

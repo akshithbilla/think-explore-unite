@@ -4,61 +4,199 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, FileText, Newspaper, Image, Video, Music, Sparkles, Clock, User } from "lucide-react";
-import { useSearch, type SearchResult } from "@/hooks/useSearch";
+import { Search, FileText, Newspaper, Image, Video, Music, Sparkles, Clock, User, ExternalLink } from "lucide-react";
+
+// Define types for our search results
+export interface SearchResult {
+  id: string;
+  type: 'blogs' | 'news' | 'images' | 'videos' | 'music';
+  title: string;
+  description: string;
+  source: string;
+  url: string;
+  publishedAt?: string;
+  duration?: string;
+  views?: number;
+  thumbnail?: string;
+}
 
 const SearchInterface = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [activeTab, setActiveTab] = useState("blogs");
-  const { search, isLoading } = useSearch();
+  const [isLoading, setIsLoading] = useState(false);
+  const [aiSummary, setAiSummary] = useState("");
+
+  // Function to call the Gemini API for AI summary
+  const generateAISummary = async (query: string, results: SearchResult[]) => {
+    const API_KEY = "AIzaSyBgGGMjRi95r9IcSpLEUaF8EUIQ3bpHO50";
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+    
+    try {
+      const resultCounts = {
+        blogs: results.filter(r => r.type === 'blogs').length,
+        news: results.filter(r => r.type === 'news').length,
+        images: results.filter(r => r.type === 'images').length,
+        videos: results.filter(r => r.type === 'videos').length,
+        music: results.filter(r => r.type === 'music').length
+      };
+      
+      const prompt = `Provide a concise 2-3 sentence summary about "${query}" based on these search result counts: 
+      Blogs: ${resultCounts.blogs}, News: ${resultCounts.news}, Images: ${resultCounts.images}, 
+      Videos: ${resultCounts.videos}, Music: ${resultCounts.music}. If there are few results, suggest broadening the search.`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }]
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Gemini API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return data.candidates[0].content.parts[0].text;
+    } catch (error) {
+      console.error("Error generating AI summary:", error);
+      return `Found ${results.length} results for "${query}". The search includes content from various sources.`;
+    }
+  };
+
+  // Function to perform search across all APIs
+  const performSearch = async (query: string, type: string) => {
+    setIsLoading(true);
+    setResults([]);
+    setAiSummary("");
+    
+    try {
+      let allResults: SearchResult[] = [];
+      
+      // Search News API
+      if (type === 'all' || type === 'news' || type === 'blogs') {
+        try {
+          const newsResponse = await fetch(`https://nexus-search.onrender.com/api/searchNews?query=${encodeURIComponent(query)}`);
+          if (newsResponse.ok) {
+            const newsData = await newsResponse.json();
+            if (Array.isArray(newsData)) {
+              const newsResults: SearchResult[] = newsData.map((article: any, index: number) => ({
+                id: `news-${index}`,
+                type: 'news',
+                title: article.title || 'No title',
+                description: article.description || 'No description available',
+                source: article.source?.name || 'Unknown source',
+                url: article.url || '#',
+                publishedAt: article.publishedAt,
+                thumbnail: article.urlToImage
+              }));
+              allResults = [...allResults, ...newsResults];
+            }
+          } else {
+            console.error("News API error:", newsResponse.status);
+          }
+        } catch (error) {
+          console.error("Error fetching news:", error);
+        }
+      }
+      
+      // Search Images API
+      if (type === 'all' || type === 'images') {
+        try {
+          const imagesResponse = await fetch(`https://nexus-search.onrender.com/api/searchImages?query=${encodeURIComponent(query)}`);
+          if (imagesResponse.ok) {
+            const imagesData = await imagesResponse.json();
+            if (Array.isArray(imagesData)) {
+              const imageResults: SearchResult[] = imagesData.map((image: any, index: number) => ({
+                id: `image-${index}`,
+                type: 'images',
+                title: image.title || 'Image result',
+                description: '', // Images typically don't have descriptions
+                source: 'Pixabay',
+                url: image.link || '#',
+                thumbnail: image.thumbnail || image.link
+              }));
+              allResults = [...allResults, ...imageResults];
+            }
+          } else {
+            console.error("Images API error:", imagesResponse.status);
+          }
+        } catch (error) {
+          console.error("Error fetching images:", error);
+        }
+      }
+      
+      // Search YouTube API
+      if (type === 'all' || type === 'videos' || type === 'music') {
+        try {
+          const youtubeResponse = await fetch(`https://nexus-search.onrender.com/api/youtube/search?query=${encodeURIComponent(query)}`);
+          if (youtubeResponse.ok) {
+            const youtubeData = await youtubeResponse.json();
+            if (Array.isArray(youtubeData)) {
+              const videoResults: SearchResult[] = youtubeData.map((item: any, index: number) => ({
+                id: `video-${index}`,
+                type: 'videos', // Default to videos
+                title: item.title || 'No title',
+                description: item.description || 'No description available',
+                source: 'YouTube',
+                url: item.link || '#',
+                thumbnail: item.thumbnail
+              }));
+              allResults = [...allResults, ...videoResults];
+            }
+          } else {
+            console.error("YouTube API error:", youtubeResponse.status);
+          }
+        } catch (error) {
+          console.error("Error fetching YouTube data:", error);
+        }
+      }
+      
+      setResults(allResults);
+      
+      // Generate AI summary
+      if (allResults.length > 0) {
+        const summary = await generateAISummary(query, allResults);
+        setAiSummary(summary);
+      } else {
+        setAiSummary(`No results found for "${query}". Try different keywords or check the spelling.`);
+      }
+    } catch (error) {
+      console.error("Search error:", error);
+      setAiSummary("An error occurred during search. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
     
-    const searchResults = await search(searchQuery, activeTab as any);
-    setResults(searchResults);
+    // Map tab values to search types
+    const searchTypeMap: { [key: string]: string } = {
+      'blogs': 'blogs',
+      'news': 'news', 
+      'images': 'images',
+      'videos': 'videos',
+      'music': 'music'
+    };
+    
+    const searchType = searchTypeMap[activeTab] || 'all';
+    await performSearch(searchQuery, searchType);
   };
 
-  // Mock data for demonstration
-  const mockResults = {
-    blogs: [
-      {
-        id: 1,
-        title: "The Future of AI in Content Creation",
-        excerpt: "Exploring how artificial intelligence is revolutionizing the way we create and consume content...",
-        author: "Alex Chen",
-        date: "2 hours ago",
-        tags: ["AI", "Technology", "Content"],
-        readTime: "5 min read"
-      },
-      {
-        id: 2,
-        title: "Building Scalable Search Systems",
-        excerpt: "A deep dive into the architecture patterns that power modern search engines...",
-        author: "Sarah Johnson",
-        date: "1 day ago",
-        tags: ["Search", "Architecture", "Engineering"],
-        readTime: "8 min read"
-      }
-    ],
-    news: [
-      {
-        id: 1,
-        title: "Tech Giants Invest Billions in AI Research",
-        source: "TechNews",
-        time: "3 hours ago",
-        summary: "Major technology companies announce unprecedented investments in artificial intelligence research and development."
-      },
-      {
-        id: 2,
-        title: "New Search Algorithm Breakthrough",
-        source: "Science Daily",
-        time: "6 hours ago",
-        summary: "Researchers develop innovative approach to semantic search with 40% improvement in accuracy."
-      }
-    ]
-  };
+  // Filter results by active tab
+  const filteredResults = results.filter(result => {
+    if (activeTab === 'all') return true;
+    return result.type === activeTab;
+  });
 
   return (
     <div className="space-y-8">
@@ -109,10 +247,8 @@ const SearchInterface = () => {
             <p className="text-muted-foreground leading-relaxed">
               {isLoading ? (
                 <span className="animate-pulse">Generating intelligent summary...</span>
-              ) : results.length > 0 ? (
-                `Found ${results.length} results for "${searchQuery}". The search includes content from various sources including blogs, news articles, and external media.`
-              ) : searchQuery ? (
-                `No results found for "${searchQuery}". Try different keywords or check the spelling.`
+              ) : aiSummary ? (
+                aiSummary
               ) : (
                 "Enter a search query to get AI-powered results and summaries from multiple sources."
               )}
@@ -151,19 +287,35 @@ const SearchInterface = () => {
             {/* Results for each tab */}
             {['blogs', 'news', 'images', 'videos', 'music'].map((type) => (
               <TabsContent key={type} value={type} className="space-y-6">
-                {results.filter(r => r.type === type).length > 0 ? (
-                  results.filter(r => r.type === type).map((result) => (
-                    <Card key={result.id} className="hover:shadow-card-custom transition-all duration-200 cursor-pointer">
+                {isLoading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Searching for {type}...</p>
+                  </div>
+                ) : filteredResults.filter(r => r.type === type).length > 0 ? (
+                  filteredResults.filter(r => r.type === type).map((result) => (
+                    <Card key={result.id} className="hover:shadow-card-custom transition-all duration-200">
                       <CardHeader>
                         <div className="flex justify-between items-start">
-                          <div className="space-y-2">
-                            <CardTitle className="text-xl hover:text-primary transition-colors">
-                              {result.title}
-                            </CardTitle>
+                          <div className="space-y-2 flex-1">
+                            <a href={result.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                              <CardTitle className="text-xl hover:text-primary transition-colors flex items-center gap-2">
+                                {result.title} <ExternalLink className="h-4 w-4" />
+                              </CardTitle>
+                            </a>
                             <CardDescription className="text-base leading-relaxed">
                               {result.description}
                             </CardDescription>
                           </div>
+                          {result.thumbnail && (
+                            <div className="ml-4 flex-shrink-0">
+                              <img 
+                                src={result.thumbnail} 
+                                alt={result.title}
+                                className="w-24 h-24 object-cover rounded-lg"
+                              />
+                            </div>
+                          )}
                         </div>
                         <div className="flex items-center justify-between pt-4">
                           <div className="flex items-center space-x-4 text-sm text-muted-foreground">

@@ -2,9 +2,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PenTool, Search, Bookmark, TrendingUp, Eye, Clock, Plus } from "lucide-react";
+import { PenTool, Search, Bookmark, TrendingUp, Eye, Clock, Plus, FileText } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
+  const { user } = useAuth();
+  
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-16">
@@ -12,13 +16,15 @@ const Dashboard = () => {
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
             <div>
-              <h1 className="text-3xl font-bold">Welcome back, Alex!</h1>
+              <h1 className="text-3xl font-bold">Welcome back, {user?.user_metadata?.display_name || 'User'}!</h1>
               <p className="text-muted-foreground">Here's what's happening with your content and searches</p>
             </div>
-            <Button variant="hero" size="lg">
-              <Plus className="h-5 w-5 mr-2" />
-              Write New Blog
-            </Button>
+            <Link to="/write-blog">
+              <Button variant="hero" size="lg">
+                <Plus className="h-5 w-5 mr-2" />
+                Write New Blog
+              </Button>
+            </Link>
           </div>
 
           {/* Stats Cards */}
@@ -116,7 +122,12 @@ const Dashboard = () => {
                     </div>
                   </div>
                 ))}
-                <Button variant="outline" className="w-full">View All Blogs</Button>
+                <Link to="/my-blogs">
+                  <Button variant="outline" className="w-full">
+                    <FileText className="h-4 w-4 mr-2" />
+                    View All Blogs
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
 
