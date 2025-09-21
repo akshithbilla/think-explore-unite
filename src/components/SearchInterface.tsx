@@ -5,15 +5,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, FileText, Newspaper, Image, Video, Music, Sparkles, Clock, User } from "lucide-react";
+import { useSearch, type SearchResult } from "@/hooks/useSearch";
 
 const SearchInterface = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [activeTab, setActiveTab] = useState("blogs");
+  const { search, isLoading } = useSearch();
 
-  const handleSearch = () => {
-    setIsSearching(true);
-    // Simulate search delay
-    setTimeout(() => setIsSearching(false), 1500);
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+    
+    const searchResults = await search(searchQuery, activeTab as any);
+    setResults(searchResults);
   };
 
   // Mock data for demonstration
@@ -79,11 +83,11 @@ const SearchInterface = () => {
           />
           <Button
             onClick={handleSearch}
-            disabled={!searchQuery.trim() || isSearching}
+            disabled={!searchQuery.trim() || isLoading}
             className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-xl"
             variant="hero"
           >
-            {isSearching ? (
+            {isLoading ? (
               <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
             ) : (
               <Search className="h-4 w-4" />
@@ -103,10 +107,14 @@ const SearchInterface = () => {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground leading-relaxed">
-              {isSearching ? (
+              {isLoading ? (
                 <span className="animate-pulse">Generating intelligent summary...</span>
+              ) : results.length > 0 ? (
+                `Found ${results.length} results for "${searchQuery}". The search includes content from various sources including blogs, news articles, and external media.`
+              ) : searchQuery ? (
+                `No results found for "${searchQuery}". Try different keywords or check the spelling.`
               ) : (
-                "Based on your search for 'AI technology trends', here's what's trending: Artificial Intelligence continues to evolve rapidly with significant investments from major tech companies. Key areas include machine learning, natural language processing, and automated content generation systems."
+                "Enter a search query to get AI-powered results and summaries from multiple sources."
               )}
             </p>
           </CardContent>
@@ -116,7 +124,7 @@ const SearchInterface = () => {
       {/* Search Results */}
       {searchQuery && (
         <div className="max-w-6xl mx-auto">
-          <Tabs defaultValue="blogs" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-5 mb-8">
               <TabsTrigger value="blogs" className="flex items-center space-x-2">
                 <FileText className="h-4 w-4" />
@@ -140,88 +148,75 @@ const SearchInterface = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="blogs" className="space-y-6">
-              {mockResults.blogs.map((blog) => (
-                <Card key={blog.id} className="hover:shadow-card-custom transition-all duration-200 cursor-pointer">
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-2">
-                        <CardTitle className="text-xl hover:text-primary transition-colors">
-                          {blog.title}
-                        </CardTitle>
-                        <CardDescription className="text-base leading-relaxed">
-                          {blog.excerpt}
-                        </CardDescription>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between pt-4">
-                      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                        <div className="flex items-center space-x-1">
-                          <User className="h-4 w-4" />
-                          <span>{blog.author}</span>
+            {/* Results for each tab */}
+            {['blogs', 'news', 'images', 'videos', 'music'].map((type) => (
+              <TabsContent key={type} value={type} className="space-y-6">
+                {results.filter(r => r.type === type).length > 0 ? (
+                  results.filter(r => r.type === type).map((result) => (
+                    <Card key={result.id} className="hover:shadow-card-custom transition-all duration-200 cursor-pointer">
+                      <CardHeader>
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-2">
+                            <CardTitle className="text-xl hover:text-primary transition-colors">
+                              {result.title}
+                            </CardTitle>
+                            <CardDescription className="text-base leading-relaxed">
+                              {result.description}
+                            </CardDescription>
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-1">
-                          <Clock className="h-4 w-4" />
-                          <span>{blog.date}</span>
+                        <div className="flex items-center justify-between pt-4">
+                          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                            <span className="font-medium">{result.source}</span>
+                            {result.publishedAt && (
+                              <div className="flex items-center space-x-1">
+                                <Clock className="h-4 w-4" />
+                                <span>{new Date(result.publishedAt).toLocaleDateString()}</span>
+                              </div>
+                            )}
+                            {result.duration && <span>{result.duration}</span>}
+                            {result.views && <span>{result.views.toLocaleString()} views</span>}
+                          </div>
+                          <Badge variant="secondary" className="capitalize">{result.type}</Badge>
                         </div>
-                        <span>{blog.readTime}</span>
-                      </div>
-                      <div className="flex space-x-2">
-                        {blog.tags.map((tag) => (
-                          <Badge key={tag} variant="secondary">{tag}</Badge>
-                        ))}
-                      </div>
+                      </CardHeader>
+                    </Card>
+                  ))
+                ) : searchQuery && !isLoading ? (
+                  <div className="text-center py-12">
+                    <div className="space-y-4">
+                      {type === 'blogs' && <FileText className="h-16 w-16 mx-auto text-muted-foreground" />}
+                      {type === 'news' && <Newspaper className="h-16 w-16 mx-auto text-muted-foreground" />}
+                      {type === 'images' && <Image className="h-16 w-16 mx-auto text-muted-foreground" />}
+                      {type === 'videos' && <Video className="h-16 w-16 mx-auto text-muted-foreground" />}
+                      {type === 'music' && <Music className="h-16 w-16 mx-auto text-muted-foreground" />}
+                      <h3 className="text-xl font-semibold">No {type} found</h3>
+                      <p className="text-muted-foreground">No {type} results found for "{searchQuery}". Try different keywords.</p>
                     </div>
-                  </CardHeader>
-                </Card>
-              ))}
-            </TabsContent>
-
-            <TabsContent value="news" className="space-y-6">
-              {mockResults.news.map((article) => (
-                <Card key={article.id} className="hover:shadow-card-custom transition-all duration-200 cursor-pointer">
-                  <CardHeader>
-                    <CardTitle className="text-xl hover:text-primary transition-colors">
-                      {article.title}
-                    </CardTitle>
-                    <CardDescription className="text-base leading-relaxed">
-                      {article.summary}
-                    </CardDescription>
-                    <div className="flex items-center space-x-4 text-sm text-muted-foreground pt-2">
-                      <span className="font-medium">{article.source}</span>
-                      <div className="flex items-center space-x-1">
-                        <Clock className="h-4 w-4" />
-                        <span>{article.time}</span>
-                      </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="space-y-4">
+                      {type === 'blogs' && <FileText className="h-16 w-16 mx-auto text-muted-foreground" />}
+                      {type === 'news' && <Newspaper className="h-16 w-16 mx-auto text-muted-foreground" />}
+                      {type === 'images' && <Image className="h-16 w-16 mx-auto text-muted-foreground" />}
+                      {type === 'videos' && <Video className="h-16 w-16 mx-auto text-muted-foreground" />}
+                      {type === 'music' && <Music className="h-16 w-16 mx-auto text-muted-foreground" />}
+                      <h3 className="text-xl font-semibold">
+                        {type.charAt(0).toUpperCase() + type.slice(1)} Search
+                      </h3>
+                      <p className="text-muted-foreground">
+                        {type === 'blogs' && "Search through our curated blog posts and articles."}
+                        {type === 'news' && "Get the latest news articles from trusted sources."}
+                        {type === 'images' && "Find relevant images from across the web."}
+                        {type === 'videos' && "Discover videos with AI-powered summaries."}
+                        {type === 'music' && "Find your favorite tracks and discover new music."}
+                      </p>
                     </div>
-                  </CardHeader>
-                </Card>
-              ))}
-            </TabsContent>
-
-            <TabsContent value="images" className="text-center py-12">
-              <div className="space-y-4">
-                <Image className="h-16 w-16 mx-auto text-muted-foreground" />
-                <h3 className="text-xl font-semibold">Image Search Coming Soon</h3>
-                <p className="text-muted-foreground">We're working on integrating beautiful image search from top sources.</p>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="videos" className="text-center py-12">
-              <div className="space-y-4">
-                <Video className="h-16 w-16 mx-auto text-muted-foreground" />
-                <h3 className="text-xl font-semibold">Video Search Coming Soon</h3>
-                <p className="text-muted-foreground">Discover videos from YouTube and other platforms with AI summaries.</p>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="music" className="text-center py-12">
-              <div className="space-y-4">
-                <Music className="h-16 w-16 mx-auto text-muted-foreground" />
-                <h3 className="text-xl font-semibold">Music Search Coming Soon</h3>
-                <p className="text-muted-foreground">Find your favorite tracks and discover new music with intelligent recommendations.</p>
-              </div>
-            </TabsContent>
+                  </div>
+                )}
+              </TabsContent>
+            ))}
           </Tabs>
         </div>
       )}

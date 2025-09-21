@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, PenTool, Home, User, Menu, X } from "lucide-react";
+import { Search, PenTool, Home, User, Menu, X, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   const navItems = [
     { name: "Home", href: "/", icon: Home },
@@ -53,8 +55,26 @@ const Navigation = () => {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost">Sign In</Button>
-            <Button variant="hero">Get Started</Button>
+            {user ? (
+              <>
+                <span className="text-sm text-muted-foreground">
+                  Welcome back!
+                </span>
+                <Button variant="ghost" onClick={signOut}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/auth">
+                  <Button variant="ghost">Sign In</Button>
+                </Link>
+                <Link to="/auth">
+                  <Button variant="hero">Get Started</Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -91,8 +111,21 @@ const Navigation = () => {
                 );
               })}
               <div className="pt-4 space-y-2">
-                <Button variant="ghost" className="w-full">Sign In</Button>
-                <Button variant="hero" className="w-full">Get Started</Button>
+                {user ? (
+                  <Button variant="ghost" className="w-full" onClick={signOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+                ) : (
+                  <>
+                    <Link to="/auth">
+                      <Button variant="ghost" className="w-full">Sign In</Button>
+                    </Link>
+                    <Link to="/auth">
+                      <Button variant="hero" className="w-full">Get Started</Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

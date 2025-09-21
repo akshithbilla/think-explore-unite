@@ -14,7 +14,198 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ai_summaries: {
+        Row: {
+          content_id: string | null
+          content_type: string
+          created_at: string
+          id: string
+          model_used: string | null
+          original_content: string | null
+          summary: string
+          user_id: string | null
+        }
+        Insert: {
+          content_id?: string | null
+          content_type: string
+          created_at?: string
+          id?: string
+          model_used?: string | null
+          original_content?: string | null
+          summary: string
+          user_id?: string | null
+        }
+        Update: {
+          content_id?: string | null
+          content_type?: string
+          created_at?: string
+          id?: string
+          model_used?: string | null
+          original_content?: string | null
+          summary?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      blogs: {
+        Row: {
+          comment_count: number
+          content: string
+          cover_image_url: string | null
+          created_at: string
+          excerpt: string | null
+          id: string
+          is_featured: boolean
+          is_published: boolean
+          like_count: number
+          published_at: string | null
+          reading_time: number | null
+          slug: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+          view_count: number
+        }
+        Insert: {
+          comment_count?: number
+          content: string
+          cover_image_url?: string | null
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          is_featured?: boolean
+          is_published?: boolean
+          like_count?: number
+          published_at?: string | null
+          reading_time?: number | null
+          slug: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+          view_count?: number
+        }
+        Update: {
+          comment_count?: number
+          content?: string
+          cover_image_url?: string | null
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          is_featured?: boolean
+          is_published?: boolean
+          like_count?: number
+          published_at?: string | null
+          reading_time?: number | null
+          slug?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
+      bookmarks: {
+        Row: {
+          content_id: string | null
+          content_type: string
+          created_at: string
+          description: string | null
+          external_url: string | null
+          id: string
+          source: string | null
+          thumbnail_url: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          content_id?: string | null
+          content_type: string
+          created_at?: string
+          description?: string | null
+          external_url?: string | null
+          id?: string
+          source?: string | null
+          thumbnail_url?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          content_id?: string | null
+          content_type?: string
+          created_at?: string
+          description?: string | null
+          external_url?: string | null
+          id?: string
+          source?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      search_history: {
+        Row: {
+          created_at: string
+          id: string
+          query: string
+          results_count: number | null
+          search_type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          query: string
+          results_count?: number | null
+          search_type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          query?: string
+          results_count?: number | null
+          search_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
