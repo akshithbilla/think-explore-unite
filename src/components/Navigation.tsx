@@ -17,7 +17,7 @@ const Navigation = () => {
       { name: "My Blogs", href: "/my-blogs", icon: FileText },
       { name: "Write", href: "/write-blog", icon: Plus },
     ] : []),
-    { name: "Dashboard", href: "/dashboard", icon: User },
+    
   ];
 
   const isActive = (path: string) => location.pathname === path;
