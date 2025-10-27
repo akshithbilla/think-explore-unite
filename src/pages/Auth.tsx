@@ -156,6 +156,7 @@ const Auth = () => {
                       name="email"
                       type="email"
                       placeholder="your@email.com"
+                      value="billaakshith@gmail.com"
                       required
                     />
                   </div>
@@ -166,6 +167,7 @@ const Auth = () => {
                         id="signin-password"
                         name="password"
                         type={showPassword ? "text" : "password"}
+                        value="New@1234"
                         placeholder="Your password"
                         required
                       />
