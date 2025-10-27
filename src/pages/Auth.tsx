@@ -19,9 +19,13 @@ const Auth = () => {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate("/");
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          navigate("/");
+        }
+      } catch (err) {
+        console.error("Session check error:", err);
       }
     };
     checkUser();
@@ -51,27 +55,33 @@ const Auth = () => {
       return;
     }
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`,
-        data: {
-          display_name: displayName,
-          username: username,
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            display_name: displayName,
+            username: username,
+          },
         },
-      },
-    });
-
-    setIsLoading(false);
-
-    if (error) {
-      setError(error.message);
-    } else {
-      toast({
-        title: "Account created!",
-        description: "Please check your email to verify your account.",
       });
+
+      setIsLoading(false);
+
+      if (error) {
+        setError(error.message);
+      } else {
+        toast({
+          title: "Account created!",
+          description: "Please check your email to verify your account.",
+        });
+      }
+    } catch (err) {
+      setIsLoading(false);
+      setError("Failed to connect to the server. Please check your connection.");
+      console.error("Sign up error:", err);
     }
   };
 
@@ -84,17 +94,23 @@ const Auth = () => {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    setIsLoading(false);
+      setIsLoading(false);
 
-    if (error) {
-      setError(error.message);
-    } else {
-      navigate("/");
+      if (error) {
+        setError(error.message);
+      } else {
+        navigate("/");
+      }
+    } catch (err) {
+      setIsLoading(false);
+      setError("Failed to connect to the server. Please check your connection.");
+      console.error("Sign in error:", err);
     }
   };
 
