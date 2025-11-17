@@ -5,26 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Clock, User, Eye, Heart, MessageCircle, Bookmark } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-
-interface Blog {
-  id: string;
-  title: string;
-  excerpt: string;
-  slug: string;
-  tags: string[];
-  is_published: boolean;
-  is_featured: boolean;
-  view_count: number;
-  like_count: number;
-  comment_count: number;
-  reading_time: number;
-  cover_image_url: string | null;
-  created_at: string;
-  updated_at: string;
-  published_at: string | null;
-  user_id: string;
-}
+import { apiClient, Blog } from "@/lib/api";
 
 const BlogGrid = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
@@ -37,17 +18,7 @@ const BlogGrid = () => {
   const fetchBlogs = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('blogs')
-        .select('*')
-        .eq('is_published', true)
-        .order('published_at', { ascending: false })
-        .limit(12);
-
-      if (error) {
-        throw error;
-      }
-
+      const data = await apiClient.getBlogs();
       setBlogs(data || []);
     } catch (error) {
       console.error('Error fetching blogs:', error);

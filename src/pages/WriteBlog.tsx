@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Save, Eye, Send, ArrowLeft, Image as ImageIcon, Tag, Clock } from "lucide-react";
 
@@ -82,30 +82,23 @@ const WriteBlog = () => {
       const slug = generateSlug(title);
       const readingTime = calculateReadingTime(content);
 
-      const { error } = await supabase
-        .from('blogs')
-        .insert({
-          user_id: user?.id,
-          title: title.trim(),
-          content: content.trim(),
-          excerpt: excerpt.trim() || content.trim().substring(0, 160) + "...",
-          slug,
-          tags,
-          cover_image_url: coverImageUrl || null,
-          reading_time: readingTime,
-          is_published: false,
-        });
-
-      if (error) {
-        throw error;
-      }
+      await apiClient.createBlog({
+        title: title.trim(),
+        content: content.trim(),
+        excerpt: excerpt.trim() || content.trim().substring(0, 160) + "...",
+        slug,
+        tags,
+        cover_image_url: coverImageUrl || undefined,
+        reading_time: readingTime,
+        is_published: false,
+      });
 
       toast({
         title: "Draft saved!",
         description: "Your blog post has been saved as a draft.",
       });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save draft");
+    } catch (err: any) {
+      setError(err.message || "Failed to save draft");
     } finally {
       setIsSaving(false);
     }
@@ -124,24 +117,16 @@ const WriteBlog = () => {
       const slug = generateSlug(title);
       const readingTime = calculateReadingTime(content);
 
-      const { error } = await supabase
-        .from('blogs')
-        .insert({
-          user_id: user?.id,
-          title: title.trim(),
-          content: content.trim(),
-          excerpt: excerpt.trim() || content.trim().substring(0, 160) + "...",
-          slug,
-          tags,
-          cover_image_url: coverImageUrl || null,
-          reading_time: readingTime,
-          is_published: true,
-          published_at: new Date().toISOString(),
-        });
-
-      if (error) {
-        throw error;
-      }
+      await apiClient.createBlog({
+        title: title.trim(),
+        content: content.trim(),
+        excerpt: excerpt.trim() || content.trim().substring(0, 160) + "...",
+        slug,
+        tags,
+        cover_image_url: coverImageUrl || undefined,
+        reading_time: readingTime,
+        is_published: true,
+      });
 
       toast({
         title: "Blog published!",
@@ -149,8 +134,8 @@ const WriteBlog = () => {
       });
 
       navigate("/dashboard");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to publish blog");
+    } catch (err: any) {
+      setError(err.message || "Failed to publish blog");
     } finally {
       setIsPublishing(false);
     }

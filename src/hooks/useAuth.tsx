@@ -1,10 +1,9 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient, User } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
+  session: { token: string } | null;
   loading: boolean;
   signOut: () => Promise<void>;
 }
@@ -30,31 +29,42 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<{ token: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+    const checkAuth = async () => {
+      try {
+        if (apiClient.isAuthenticated()) {
+          const { user } = await apiClient.getCurrentUser();
+          setUser(user);
+          setSession({ token: localStorage.getItem('auth_token') || '' });
+        } else {
+          setUser(null);
+          setSession(null);
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        setUser(null);
+        setSession(null);
+        apiClient.signOut();
+      } finally {
         setLoading(false);
       }
-    );
+    };
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    checkAuth();
 
-    return () => subscription.unsubscribe();
+    // Check auth state periodically (every 5 minutes)
+    const interval = setInterval(checkAuth, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    apiClient.signOut();
+    setUser(null);
+    setSession(null);
   };
 
   const value = {

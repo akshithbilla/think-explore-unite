@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/lib/api";
 import { Eye, EyeOff, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -20,11 +20,12 @@ const Auth = () => {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
+        if (apiClient.isAuthenticated()) {
+          await apiClient.getCurrentUser();
           navigate("/");
         }
       } catch (err) {
+        // User not authenticated, stay on auth page
         console.error("Session check error:", err);
       }
     };
@@ -56,31 +57,20 @@ const Auth = () => {
     }
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            display_name: displayName,
-            username: username,
-          },
-        },
+      await apiClient.signUp(email, password, displayName, username);
+      
+      setIsLoading(false);
+      
+      toast({
+        title: "Account created!",
+        description: "You have been successfully signed up.",
       });
-
+      
+      // Navigate to home page after successful signup
+      navigate("/");
+    } catch (err: any) {
       setIsLoading(false);
-
-      if (error) {
-        setError(error.message);
-      } else {
-        toast({
-          title: "Account created!",
-          description: "Please check your email to verify your account.",
-        });
-      }
-    } catch (err) {
-      setIsLoading(false);
-      setError("Failed to connect to the server. Please check your connection.");
+      setError(err.message || "Failed to create account. Please try again.");
       console.error("Sign up error:", err);
     }
   };
@@ -95,21 +85,13 @@ const Auth = () => {
     const password = formData.get("password") as string;
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
+      await apiClient.signIn(email, password);
+      
       setIsLoading(false);
-
-      if (error) {
-        setError(error.message);
-      } else {
-        navigate("/");
-      }
-    } catch (err) {
+      navigate("/");
+    } catch (err: any) {
       setIsLoading(false);
-      setError("Failed to connect to the server. Please check your connection.");
+      setError(err.message || "Failed to sign in. Please check your credentials.");
       console.error("Sign in error:", err);
     }
   };
@@ -156,7 +138,7 @@ const Auth = () => {
                       name="email"
                       type="email"
                       placeholder="your@email.com"
-                      value="billaakshith@gmail.com"
+                       
                       required
                     />
                   </div>
@@ -167,7 +149,6 @@ const Auth = () => {
                         id="signin-password"
                         name="password"
                         type={showPassword ? "text" : "password"}
-                        value="New@1234"
                         placeholder="Your password"
                         required
                       />

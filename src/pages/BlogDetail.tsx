@@ -4,28 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient, Blog } from "@/lib/api";
 import { ArrowLeft, Calendar, Clock, Eye, Heart, MessageCircle, Share2, User } from "lucide-react";
-
-interface Blog {
-  id: string;
-  title: string;
-  content: string;
-  excerpt: string;
-  slug: string;
-  tags: string[];
-  is_published: boolean;
-  is_featured: boolean;
-  view_count: number;
-  like_count: number;
-  comment_count: number;
-  reading_time: number;
-  cover_image_url: string | null;
-  created_at: string;
-  updated_at: string;
-  published_at: string | null;
-  user_id: string;
-}
 
 const BlogDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -43,29 +23,10 @@ const BlogDetail = () => {
   const fetchBlog = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('blogs')
-        .select('*')
-        .eq('slug', slug)
-        .eq('is_published', true)
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        setBlog(data);
-        // Increment view count
-        await supabase
-          .from('blogs')
-          .update({ view_count: data.view_count + 1 })
-          .eq('id', data.id);
-      } else {
-        setError("Blog not found");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch blog");
+      const data = await apiClient.getBlogBySlug(slug!);
+      setBlog(data);
+    } catch (err: any) {
+      setError(err.message || "Failed to fetch blog");
     } finally {
       setLoading(false);
     }

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient, Blog } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Plus, 
@@ -21,23 +21,6 @@ import {
   Filter
 } from "lucide-react";
 
-interface Blog {
-  id: string;
-  title: string;
-  excerpt: string;
-  slug: string;
-  tags: string[];
-  is_published: boolean;
-  is_featured: boolean;
-  view_count: number;
-  like_count: number;
-  comment_count: number;
-  reading_time: number;
-  cover_image_url: string | null;
-  created_at: string;
-  updated_at: string;
-  published_at: string | null;
-}
 
 const BlogDashboard = () => {
   const { user } = useAuth();
@@ -66,27 +49,11 @@ const BlogDashboard = () => {
   const fetchBlogs = async () => {
     try {
       setLoading(true);
-      let query = supabase
-        .from('blogs')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('updated_at', { ascending: false });
-
-      if (filterStatus === "published") {
-        query = query.eq('is_published', true);
-      } else if (filterStatus === "drafts") {
-        query = query.eq('is_published', false);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        throw error;
-      }
-
+      const status = filterStatus === "all" ? undefined : filterStatus;
+      const data = await apiClient.getMyBlogs(status);
       setBlogs(data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch blogs");
+    } catch (err: any) {
+      setError(err.message || "Failed to fetch blogs");
     } finally {
       setLoading(false);
     }
@@ -98,24 +65,16 @@ const BlogDashboard = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('blogs')
-        .delete()
-        .eq('id', blogId);
-
-      if (error) {
-        throw error;
-      }
-
+      await apiClient.deleteBlog(blogId);
       setBlogs(blogs.filter(blog => blog.id !== blogId));
       toast({
         title: "Blog deleted",
         description: "The blog post has been deleted successfully.",
       });
-    } catch (err) {
+    } catch (err: any) {
       toast({
         title: "Error",
-        description: "Failed to delete the blog post.",
+        description: err.message || "Failed to delete the blog post.",
         variant: "destructive",
       });
     }
@@ -123,36 +82,22 @@ const BlogDashboard = () => {
 
   const togglePublishStatus = async (blog: Blog) => {
     try {
-      const { error } = await supabase
-        .from('blogs')
-        .update({
-          is_published: !blog.is_published,
-          published_at: !blog.is_published ? new Date().toISOString() : null,
-        })
-        .eq('id', blog.id);
-
-      if (error) {
-        throw error;
-      }
+      const updatedBlog = await apiClient.updateBlog(blog.id, {
+        is_published: !blog.is_published,
+      });
 
       setBlogs(blogs.map(b => 
-        b.id === blog.id 
-          ? { 
-              ...b, 
-              is_published: !b.is_published,
-              published_at: !b.is_published ? new Date().toISOString() : null
-            }
-          : b
+        b.id === blog.id ? updatedBlog : b
       ));
 
       toast({
         title: blog.is_published ? "Blog unpublished" : "Blog published",
         description: `The blog post has been ${blog.is_published ? "unpublished" : "published"} successfully.`,
       });
-    } catch (err) {
+    } catch (err: any) {
       toast({
         title: "Error",
-        description: "Failed to update the blog status.",
+        description: err.message || "Failed to update the blog status.",
         variant: "destructive",
       });
     }

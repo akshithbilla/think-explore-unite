@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/lib/api';
 import { useAuth } from './useAuth';
 
 export interface SearchResult {
@@ -201,28 +202,22 @@ export const useSearch = () => {
 
       // Search internal blogs
       if (type === 'all' || type === 'blogs') {
-        const { data: blogs, error: blogError } = await supabase
-          .from('blogs')
-          .select('*')
-          .eq('is_published', true)
-          .ilike('title', `%${query}%`)
-          .order('published_at', { ascending: false })
-          .limit(type === 'blogs' ? 20 : 5);
-
-        if (blogError) {
-          console.error('Blog search error:', blogError);
-        } else if (blogs) {
-          const blogResults: SearchResult[] = blogs.map(blog => ({
+        try {
+          const blogs = await apiClient.getBlogs(false, query);
+          const limit = type === 'blogs' ? 20 : 5;
+          const blogResults: SearchResult[] = blogs.slice(0, limit).map(blog => ({
             id: blog.id,
             title: blog.title,
             description: blog.excerpt || '',
             url: `/blog/${blog.slug}`,
             source: 'Think Search Blogs',
             type: 'blog' as const,
-            publishedAt: blog.published_at,
+            publishedAt: blog.published_at || undefined,
             author: 'Blog Author', // We'd need to join with profiles to get actual author
           }));
           results = [...results, ...blogResults];
+        } catch (blogError) {
+          console.error('Blog search error:', blogError);
         }
       }
 
