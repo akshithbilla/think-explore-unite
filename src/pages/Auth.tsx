@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { apiClient } from "@/lib/api";
 import { Eye, EyeOff, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -16,6 +17,7 @@ const Auth = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { refreshAuth } = useAuth();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -59,6 +61,9 @@ const Auth = () => {
     try {
       await apiClient.signUp(email, password, displayName, username);
       
+      // Refresh auth state immediately after signup
+      await refreshAuth();
+      
       setIsLoading(false);
       
       toast({
@@ -86,6 +91,9 @@ const Auth = () => {
 
     try {
       await apiClient.signIn(email, password);
+      
+      // Refresh auth state immediately after signin
+      await refreshAuth();
       
       setIsLoading(false);
       navigate("/");
