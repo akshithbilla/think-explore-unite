@@ -19,7 +19,7 @@ const allowedOrigins = process.env.FRONTEND_URL
       'http://127.0.0.1:8080',
       'http://127.0.0.1:8081',
       'https://think-explore-unite.vercel.app',
-      'https://think-explore-unite.onrender.com'
+      'https://think-explore-unite.onrender.com/api'
     ];
 
 app.use(cors({
@@ -57,4 +57,3 @@ app.get('/health', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
