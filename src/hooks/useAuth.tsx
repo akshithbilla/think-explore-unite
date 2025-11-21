@@ -6,6 +6,7 @@ interface AuthContextType {
   session: { token: string } | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  refreshAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -13,6 +14,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   loading: true,
   signOut: async () => {},
+  refreshAuth: async () => {},
 });
 
 export const useAuth = () => {
@@ -32,27 +34,27 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [session, setSession] = useState<{ token: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        if (apiClient.isAuthenticated()) {
-          const { user } = await apiClient.getCurrentUser();
-          setUser(user);
-          setSession({ token: localStorage.getItem('auth_token') || '' });
-        } else {
-          setUser(null);
-          setSession(null);
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
+  const checkAuth = async () => {
+    try {
+      if (apiClient.isAuthenticated()) {
+        const { user } = await apiClient.getCurrentUser();
+        setUser(user);
+        setSession({ token: localStorage.getItem('auth_token') || '' });
+      } else {
         setUser(null);
         setSession(null);
-        apiClient.signOut();
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error('Auth check error:', error);
+      setUser(null);
+      setSession(null);
+      apiClient.signOut();
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     checkAuth();
 
     // Check auth state periodically (every 5 minutes)
@@ -60,6 +62,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     return () => clearInterval(interval);
   }, []);
+
+  const refreshAuth = async () => {
+    await checkAuth();
+  };
 
   const signOut = async () => {
     apiClient.signOut();
@@ -72,6 +78,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     session,
     loading,
     signOut,
+    refreshAuth,
   };
 
   return (
