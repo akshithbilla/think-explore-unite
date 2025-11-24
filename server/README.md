@@ -11,9 +11,14 @@ DATABASE_URL=postgresql://neondb_owner:npg_GtZ2snvh0qfQ@ep-dry-violet-a4luuynu-p
 JWT_SECRET=your-secret-key-change-this-in-production
 PORT=3001
 FRONTEND_URL=http://localhost:8080
+GEMINI_API_KEY=your-gemini-api-key-here
 ```
 
+**Important:** You need to get a Gemini API key from [Google AI Studio](https://makersuite.google.com/app/apikey) and replace `your-gemini-api-key-here` with your actual API key.
+
 2. The database schema will be automatically initialized when the server starts.
+
+**Note:** After creating or updating the `.env` file, restart the server for changes to take effect.
 
 ## Running the Server
 
@@ -27,5 +32,6 @@ The server will run on port 3001 by default.
 - `POST /api/auth/signup` - Sign up a new user
 - `POST /api/auth/signin` - Sign in an existing user
 - `GET /api/auth/me` - Get current user (requires authentication)
+- `POST /api/ai/generate` - Proxy to Gemini for search summaries and definitions
 - `GET /health` - Health check endpoint
 

@@ -20,6 +20,8 @@ export interface SearchResult {
   aspectRatio?: string;
 }
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+
 const SearchInterface = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -27,79 +29,66 @@ const SearchInterface = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [thinkSearchAI, setThinkSearchAI] = useState("");
   const [inputMeanAI, setInputMeanAI] = useState("");
+  
+  const callGeminiProxy = async (
+    prompt: string,
+    options?: { temperature?: number; maxOutputTokens?: number }
+  ) => {
+    const response = await fetch(`${API_BASE_URL}/ai/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt,
+        temperature: options?.temperature,
+        maxOutputTokens: options?.maxOutputTokens,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({}));
+      throw new Error(errorBody?.error || `Gemini proxy error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.text as string;
+  };
 
   // Generate ThinkSearch AI - Fragmented summary from ALL fetched data
-const generateThinkSearchAI = async (query: string, allResults: SearchResult[]) => {
-  const API_KEY = "AIzaSyBgGGMjRi95r9IcSpLEUaF8EUIQ3bpHO50";
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+  const generateThinkSearchAI = async (query: string, allResults: SearchResult[]) => {
+    try {
+      const contentToAnalyze = allResults
+        .filter(result => result.type !== 'ai')
+        .map(result => `${result.title}: ${result.description}`)
+        .join('\n\n');
 
-  try {
-    const contentToAnalyze = allResults
-      .filter(result => result.type !== 'ai')
-      .map(result => `${result.title}: ${result.description}`)
-      .join('\n\n');
+      if (!contentToAnalyze) {
+        return `No supporting sources yet for "${query}".`;
+      }
 
-    const prompt = `Search Query: "${query}"
+      const prompt = `Search Query: "${query}"
 
 Review the full information below and provide a professional, structured summary organized by distinct themes. Each section should capture key points clearly, avoid repetition, and group related facts under concise headings. Do not include any introductory or closing text. Just return the summary.
 
 SOURCE DATA:
 ${contentToAnalyze}`;
 
-
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: prompt
-          }]
-        }]
-      })
-    });
-
-    if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
-
-    const data = await response.json();
-    return data.candidates[0].content.parts[0].text;
-  } catch (error) {
-    console.error("Error generating ThinkSearch AI:", error);
-    return `Analyzing ${allResults.length} sources for "${query}" to provide summary...`;
-  }
-};
-
+      return await callGeminiProxy(prompt, { temperature: 0.35, maxOutputTokens: 1024 });
+    } catch (error) {
+      console.error("Error generating ThinkSearch AI:", error);
+      return `Analyzing ${allResults.length} sources for "${query}" to provide summary...`;
+    }
+  };
 
   // Generate Input Mean - General AI knowledge about the query
   const generateInputMeanAI = async (query: string) => {
-    const API_KEY = "AIzaSyBgGGMjRi95r9IcSpLEUaF8EUIQ3bpHO50";
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
-    
     try {
       const prompt = `Provide a concise 2-3 sentence general explanation or definition about "${query}". This should be a basic AI-generated answer explaining what the search term means, without referencing specific search results. Focus on general knowledge and fundamental concepts.`;
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }]
-        })
-      });
-      
-      if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
-      
-      const data = await response.json();
-      return data.candidates[0].content.parts[0].text;
+      return await callGeminiProxy(prompt, { temperature: 0.2, maxOutputTokens: 256 });
     } catch (error) {
+      console.error("Error generating Input Mean AI:", error);
       return `AI-powered explanation about "${query}" based on general knowledge.`;
     }
   };

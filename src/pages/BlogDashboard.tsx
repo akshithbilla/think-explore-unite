@@ -18,14 +18,9 @@ import {
   Clock, 
   TrendingUp,
   FileText,
-  Filter,
-  MoreVertical,
-  BarChart3,
-  Users,
-  BookOpen,
-  ArrowUpRight,
-  Sparkles
+  Filter
 } from "lucide-react";
+
 
 const BlogDashboard = () => {
   const { user } = useAuth();
@@ -119,200 +114,122 @@ const BlogDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-100/20">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
-          <div className="mb-6 lg:mb-0">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600">
-                <BookOpen className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Blog Dashboard
-                </h1>
-                <p className="text-muted-foreground mt-1">Manage and track your blog posts</p>
-              </div>
-            </div>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">My Blogs</h1>
+            <p className="text-muted-foreground">Manage your blog posts</p>
           </div>
-          <Button 
-            onClick={() => navigate("/write-blog")}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium shadow-sm transition-all duration-200 h-11 px-6 rounded-xl"
-          >
+          <Button onClick={() => navigate("/write-blog")}>
             <Plus className="w-4 h-4 mr-2" />
             Write New Blog
           </Button>
         </div>
 
         {error && (
-          <Alert className="mb-6 border-red-200 bg-red-50 text-red-800 rounded-xl">
-            <AlertDescription className="flex items-center">
-              <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
-              {error}
-            </AlertDescription>
+          <Alert className="mb-6">
+            <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-blue-50/50">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <Card>
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">Total Blogs</p>
-                  <p className="text-3xl font-bold text-gray-900">{blogs.length}</p>
+              <div className="flex items-center">
+                <FileText className="h-8 w-8 text-muted-foreground" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-muted-foreground">Total Blogs</p>
+                  <p className="text-2xl font-bold">{blogs.length}</p>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
-                  <FileText className="h-6 w-6" />
-                </div>
-              </div>
-              <div className="flex items-center gap-1 mt-3 text-xs text-gray-500">
-                <TrendingUp className="h-3 w-3" />
-                <span>All your content</span>
               </div>
             </CardContent>
           </Card>
-
-          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-green-50/50">
+          <Card>
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">Published</p>
-                  <p className="text-3xl font-bold text-gray-900">{blogs.filter(b => b.is_published).length}</p>
+              <div className="flex items-center">
+                <Eye className="h-8 w-8 text-muted-foreground" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-muted-foreground">Published</p>
+                  <p className="text-2xl font-bold">{blogs.filter(b => b.is_published).length}</p>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-green-600">
-                  <Eye className="h-6 w-6" />
-                </div>
-              </div>
-              <div className="flex items-center gap-1 mt-3 text-xs text-gray-500">
-                <Sparkles className="h-3 w-3" />
-                <span>Live posts</span>
               </div>
             </CardContent>
           </Card>
-
-          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-orange-50/50">
+          <Card>
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">Drafts</p>
-                  <p className="text-3xl font-bold text-gray-900">{blogs.filter(b => !b.is_published).length}</p>
+              <div className="flex items-center">
+                <Edit className="h-8 w-8 text-muted-foreground" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-muted-foreground">Drafts</p>
+                  <p className="text-2xl font-bold">{blogs.filter(b => !b.is_published).length}</p>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
-                  <Edit className="h-6 w-6" />
-                </div>
-              </div>
-              <div className="flex items-center gap-1 mt-3 text-xs text-gray-500">
-                <Clock className="h-3 w-3" />
-                <span>In progress</span>
               </div>
             </CardContent>
           </Card>
-
-          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-purple-50/50">
+          <Card>
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">Total Views</p>
-                  <p className="text-3xl font-bold text-gray-900">{blogs.reduce((sum, blog) => sum + blog.view_count, 0)}</p>
+              <div className="flex items-center">
+                <TrendingUp className="h-8 w-8 text-muted-foreground" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-muted-foreground">Total Views</p>
+                  <p className="text-2xl font-bold">{blogs.reduce((sum, blog) => sum + blog.view_count, 0)}</p>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100 text-purple-600">
-                  <BarChart3 className="h-6 w-6" />
-                </div>
-              </div>
-              <div className="flex items-center gap-1 mt-3 text-xs text-gray-500">
-                <Users className="h-3 w-3" />
-                <span>Reader engagement</span>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Search and Filter Section */}
-        <Card className="border-0 shadow-lg rounded-2xl mb-8">
-          <CardContent className="p-6">
-            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
-              <div className="relative flex-1 w-full">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Search blogs by title, excerpt, or tags..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
-              
-              <div className="flex items-center gap-2 w-full lg:w-auto">
-                <Filter className="w-4 h-4 text-gray-400 mr-2" />
-                <div className="flex bg-gray-100 rounded-lg p-1">
-                  <Button
-                    variant={filterStatus === "all" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setFilterStatus("all")}
-                    className={`rounded-md px-4 ${
-                      filterStatus === "all" 
-                        ? "bg-white shadow-sm text-blue-600" 
-                        : "text-gray-600 hover:text-gray-900"
-                    }`}
-                  >
-                    All
-                  </Button>
-                  <Button
-                    variant={filterStatus === "published" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setFilterStatus("published")}
-                    className={`rounded-md px-4 ${
-                      filterStatus === "published" 
-                        ? "bg-white shadow-sm text-green-600" 
-                        : "text-gray-600 hover:text-gray-900"
-                    }`}
-                  >
-                    Published
-                  </Button>
-                  <Button
-                    variant={filterStatus === "drafts" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setFilterStatus("drafts")}
-                    className={`rounded-md px-4 ${
-                      filterStatus === "drafts" 
-                        ? "bg-white shadow-sm text-orange-600" 
-                        : "text-gray-600 hover:text-gray-900"
-                    }`}
-                  >
-                    Drafts
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Search and Filter */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              placeholder="Search blogs..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant={filterStatus === "all" ? "default" : "outline"}
+              onClick={() => setFilterStatus("all")}
+            >
+              All
+            </Button>
+            <Button
+              variant={filterStatus === "published" ? "default" : "outline"}
+              onClick={() => setFilterStatus("published")}
+            >
+              Published
+            </Button>
+            <Button
+              variant={filterStatus === "drafts" ? "default" : "outline"}
+              onClick={() => setFilterStatus("drafts")}
+            >
+              Drafts
+            </Button>
+          </div>
+        </div>
 
         {/* Blogs List */}
         {loading ? (
-          <div className="text-center py-12">
-            <div className="flex justify-center mb-4">
-              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-            </div>
-            <p className="text-gray-600">Loading your blogs...</p>
+          <div className="text-center py-8">
+            <p>Loading blogs...</p>
           </div>
         ) : filteredBlogs.length === 0 ? (
-          <Card className="border-0 shadow-lg rounded-2xl">
-            <CardContent className="p-12 text-center">
-              <div className="flex justify-center mb-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
-                  <FileText className="h-8 w-8" />
-                </div>
-              </div>
-              <h3 className="text-xl font-semibold mb-2 text-gray-900">No blogs found</h3>
-              <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                {searchQuery ? "No blogs match your search criteria." : "Start your writing journey by creating your first blog post."}
+          <Card>
+            <CardContent className="p-8 text-center">
+              <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No blogs found</h3>
+              <p className="text-muted-foreground mb-4">
+                {searchQuery ? "No blogs match your search criteria." : "You haven't written any blogs yet."}
               </p>
               {!searchQuery && (
-                <Button 
-                  onClick={() => navigate("/write-blog")}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium shadow-sm transition-all duration-200 h-11 px-6 rounded-xl"
-                >
+                <Button onClick={() => navigate("/write-blog")}>
                   <Plus className="w-4 h-4 mr-2" />
                   Write Your First Blog
                 </Button>
@@ -322,120 +239,78 @@ const BlogDashboard = () => {
         ) : (
           <div className="grid gap-6">
             {filteredBlogs.map((blog) => (
-              <Card key={blog.id} className="border-0 shadow-lg rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
-                <CardContent className="p-0">
-                  <div className="p-6">
-                    <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <h3 className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer">
-                            {blog.title}
-                          </h3>
-                          <div className="flex items-center gap-2">
-                            <Badge 
-                              variant={blog.is_published ? "default" : "secondary"}
-                              className={`rounded-full px-3 py-1 text-xs ${
-                                blog.is_published 
-                                  ? "bg-green-100 text-green-700 border-green-200" 
-                                  : "bg-orange-100 text-orange-700 border-orange-200"
-                              }`}
-                            >
-                              {blog.is_published ? "Published" : "Draft"}
-                            </Badge>
-                            {blog.is_featured && (
-                              <Badge className="rounded-full px-3 py-1 text-xs bg-purple-100 text-purple-700 border-purple-200">
-                                Featured
-                              </Badge>
-                            )}
-                          </div>
+              <Card key={blog.id}>
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-xl font-semibold">{blog.title}</h3>
+                        <Badge variant={blog.is_published ? "default" : "secondary"}>
+                          {blog.is_published ? "Published" : "Draft"}
+                        </Badge>
+                        {blog.is_featured && (
+                          <Badge variant="outline">Featured</Badge>
+                        )}
+                      </div>
+                      
+                      <p className="text-muted-foreground mb-3">{blog.excerpt}</p>
+                      
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          {blog.is_published && blog.published_at
+                            ? new Date(blog.published_at).toLocaleDateString()
+                            : new Date(blog.created_at).toLocaleDateString()
+                          }
                         </div>
-                        
-                        <p className="text-gray-600 mb-4 leading-relaxed">{blog.excerpt}</p>
-                        
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-4">
-                          <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-1">
-                            <Calendar className="w-4 h-4" />
-                            <span>
-                              {blog.is_published && blog.published_at
-                                ? new Date(blog.published_at).toLocaleDateString()
-                                : new Date(blog.created_at).toLocaleDateString()
-                              }
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-1">
-                            <Clock className="w-4 h-4" />
-                            <span>{blog.reading_time} min read</span>
-                          </div>
-                          <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-1">
-                            <Eye className="w-4 h-4" />
-                            <span>{blog.view_count} views</span>
-                          </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          {blog.reading_time} min read
                         </div>
-                        
-                        <div className="flex flex-wrap gap-2">
-                          {blog.tags.map((tag) => (
-                            <Badge 
-                              key={tag} 
-                              variant="outline" 
-                              className="rounded-full px-3 py-1 text-xs bg-blue-50 text-blue-700 border-blue-200"
-                            >
-                              {tag}
-                            </Badge>
-                          ))}
+                        <div className="flex items-center gap-1">
+                          <Eye className="w-4 h-4" />
+                          {blog.view_count} views
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-2 lg:flex-col">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => navigate(`/blog/${blog.slug}`)}
-                          className="rounded-lg border-gray-200 hover:border-blue-300 hover:bg-blue-50"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => navigate(`/edit-blog/${blog.id}`)}
-                          className="rounded-lg border-gray-200 hover:border-green-300 hover:bg-green-50"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => togglePublishStatus(blog)}
-                          className={`rounded-lg border-gray-200 ${
-                            blog.is_published 
-                              ? "hover:border-orange-300 hover:bg-orange-50" 
-                              : "hover:border-green-300 hover:bg-green-50"
-                          }`}
-                        >
-                          {blog.is_published ? "Unpublish" : "Publish"}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => deleteBlog(blog.id)}
-                          className="rounded-lg border-gray-200 hover:border-red-300 hover:bg-red-50 text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                      <div className="flex flex-wrap gap-2">
+                        {blog.tags.map((tag) => (
+                          <Badge key={tag} variant="outline" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
                       </div>
                     </div>
-                  </div>
-                  <div className="bg-gray-50 px-6 py-3 border-t border-gray-100">
-                    <div className="flex items-center justify-between text-sm text-gray-500">
-                      <span>Last updated: {new Date(blog.updated_at).toLocaleDateString()}</span>
+                    
+                    <div className="flex items-center gap-2 ml-4">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() => navigate(`/blog/${blog.slug}`)}
-                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg"
                       >
-                        View Post
-                        <ArrowUpRight className="w-4 h-4 ml-1" />
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/edit-blog/${blog.id}`)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => togglePublishStatus(blog)}
+                      >
+                        {blog.is_published ? "Unpublish" : "Publish"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => deleteBlog(blog.id)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
@@ -450,3 +325,4 @@ const BlogDashboard = () => {
 };
 
 export default BlogDashboard;
+
