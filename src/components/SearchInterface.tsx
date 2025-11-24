@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, FileText, Newspaper, Image, Video, Music, Sparkles, Clock, User, ExternalLink, Play, Headphones, BookOpen, Globe, Zap, Brain, TrendingUp, ArrowRight } from "lucide-react";
+import { Search, FileText, Newspaper, Image, Video, Music, Sparkles, Clock, User, ExternalLink, Play, Headphones, BookOpen, Globe } from "lucide-react";
 
 export interface SearchResult {
   id: string;
@@ -29,46 +29,49 @@ const SearchInterface = () => {
   const [inputMeanAI, setInputMeanAI] = useState("");
 
   // Generate ThinkSearch AI - Fragmented summary from ALL fetched data
-  const generateThinkSearchAI = async (query: string, allResults: SearchResult[]) => {
-    const API_KEY = "AIzaSyBgGGMjRi95r9IcSpLEUaF8EUIQ3bpHO50";
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+const generateThinkSearchAI = async (query: string, allResults: SearchResult[]) => {
+  const API_KEY = "AIzaSyBgGGMjRi95r9IcSpLEUaF8EUIQ3bpHO50";
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
 
-    try {
-      const contentToAnalyze = allResults
-        .filter(result => result.type !== 'ai')
-        .map(result => `${result.title}: ${result.description}`)
-        .join('\n\n');
+  try {
+    const contentToAnalyze = allResults
+      .filter(result => result.type !== 'ai')
+      .map(result => `${result.title}: ${result.description}`)
+      .join('\n\n');
 
-      const prompt = `Search Query: "${query}"
+    const prompt = `Search Query: "${query}"
 
 Review the full information below and provide a professional, structured summary organized by distinct themes. Each section should capture key points clearly, avoid repetition, and group related facts under concise headings. Do not include any introductory or closing text. Just return the summary.
 
 SOURCE DATA:
 ${contentToAnalyze}`;
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
+
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: prompt
           }]
-        })
-      });
+        }]
+      })
+    });
 
-      if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
+    if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
 
-      const data = await response.json();
-      return data.candidates[0].content.parts[0].text;
-    } catch (error) {
-      console.error("Error generating ThinkSearch AI:", error);
-      return `Analyzing ${allResults.length} sources for "${query}" to provide summary...`;
-    }
-  };
+    const data = await response.json();
+    return data.candidates[0].content.parts[0].text;
+  } catch (error) {
+    console.error("Error generating ThinkSearch AI:", error);
+    return `Analyzing ${allResults.length} sources for "${query}" to provide summary...`;
+  }
+};
+
 
   // Generate Input Mean - General AI knowledge about the query
   const generateInputMeanAI = async (query: string) => {
@@ -335,51 +338,40 @@ ${contentToAnalyze}`;
           <div className="space-y-6">
             {/* ThinkSearch AI Section */}
             {thinkSearchAI && (
-              <Card className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 text-white border-0 shadow-2xl rounded-3xl overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-400 to-blue-400"></div>
-                <CardHeader className="pb-4">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
-                      <Brain className="h-6 w-6 text-white" />
+              <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 shadow-xl">
+                <CardHeader>
+                  <div className="flex items-center space-x-3">
+                    <div className="animate-pulse">
+                      <Sparkles className="h-6 w-6" />
                     </div>
-                    <div className="flex-1">
-                      <CardTitle className="flex items-center space-x-3 text-xl">
+                    <div>
+                      <CardTitle className="flex items-center space-x-2">
                         <span>ThinkSearch AI</span>
-                        <Badge variant="secondary" className="bg-white/20 text-white border-0">
-                          <Sparkles className="h-3 w-3 mr-1" />
+                        <Badge variant="secondary" className="bg-white/20 text-white">
                           Intelligent Summary
                         </Badge>
                       </CardTitle>
-                      <CardDescription className="text-blue-100/80 mt-1">
+                      <CardDescription className="text-blue-100">
                         Fragmenting and synthesizing information from all sources...
                       </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                    <p className="text-lg leading-relaxed font-light">{thinkSearchAI}</p>
-                  </div>
+                  <p className="text-lg leading-relaxed">{thinkSearchAI}</p>
                 </CardContent>
               </Card>
             )}
 
             {/* Input Mean Section */}
             {inputMeanAI && (
-              <Card className="bg-gradient-to-br from-green-50 to-emerald-100 border-green-200/50 shadow-lg rounded-2xl">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-green-500 to-emerald-500">
-                      <Zap className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg text-gray-900">Input Mean</CardTitle>
-                      <CardDescription className="text-green-600">
-                        AI-powered general knowledge explanation
-                      </CardDescription>
-                    </div>
+              <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+                <CardHeader>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Sparkles className="h-5 w-5 text-green-600" />
+                    <CardTitle className="text-lg">Input Mean:</CardTitle>
                   </div>
-                  <CardDescription className="text-base leading-relaxed text-gray-700 bg-white/50 rounded-xl p-4 border border-green-100">
+                  <CardDescription className="text-base leading-relaxed text-gray-700">
                     {inputMeanAI}
                   </CardDescription>
                 </CardHeader>
@@ -395,17 +387,17 @@ ${contentToAnalyze}`;
 
       case 'images':
         return (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {categoryResults.map((result) => (
               <div key={result.id} className="group cursor-pointer">
-                <div className="aspect-square overflow-hidden rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 shadow-lg hover:shadow-2xl transition-all duration-300 group-hover:scale-105">
+                <div className="aspect-square overflow-hidden rounded-lg bg-muted">
                   <img 
                     src={result.thumbnail} 
                     alt={result.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                   />
                 </div>
-                <p className="mt-3 text-sm text-gray-600 font-medium truncate px-1">{result.title}</p>
+                <p className="mt-2 text-sm text-muted-foreground truncate">{result.title}</p>
               </div>
             ))}
           </div>
@@ -416,30 +408,28 @@ ${contentToAnalyze}`;
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {categoryResults.map((result) => (
               <div key={result.id} className="group cursor-pointer">
-                <div className="relative aspect-video overflow-hidden rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 shadow-lg hover:shadow-2xl transition-all duration-300">
+                <div className="relative aspect-video overflow-hidden rounded-lg bg-muted">
                   <img 
                     src={result.thumbnail} 
                     alt={result.title}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
-                    <div className="bg-white/90 rounded-full p-4 transform scale-75 group-hover:scale-100 transition-transform duration-300 shadow-2xl">
-                      <Play className="h-6 w-6 text-gray-900 ml-1" fill="currentColor" />
-                    </div>
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
+                    <Play className="h-12 w-12 text-white opacity-0 group-hover:opacity-100 transform scale-50 group-hover:scale-100 transition-all duration-200" fill="white" />
                   </div>
                   {result.duration && (
-                    <Badge className="absolute bottom-3 right-3 bg-black/80 text-white border-0 rounded-lg px-2 py-1 text-xs">
+                    <Badge className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white">
                       {result.duration}
                     </Badge>
                   )}
                 </div>
-                <div className="mt-4 space-y-2">
-                  <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors leading-tight">
+                <div className="mt-3 space-y-1">
+                  <h3 className="font-semibold line-clamp-2 group-hover:text-primary transition-colors">
                     {result.title}
                   </h3>
-                  <p className="text-sm text-gray-600">{result.source}</p>
+                  <p className="text-sm text-muted-foreground">{result.source}</p>
                   {result.views && (
-                    <p className="text-xs text-gray-500">{result.views.toLocaleString()} views</p>
+                    <p className="text-xs text-muted-foreground">{result.views.toLocaleString()} views</p>
                   )}
                 </div>
               </div>
@@ -449,27 +439,27 @@ ${contentToAnalyze}`;
 
       case 'music':
         return (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {categoryResults.map((result) => (
-              <div key={result.id} className="flex items-center space-x-4 p-4 rounded-2xl border border-gray-200 bg-white hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-lg">
-                <div className="relative flex-shrink-0">
+              <div key={result.id} className="flex items-center space-x-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors group cursor-pointer">
+                <div className="relative">
                   <img 
                     src={result.thumbnail} 
                     alt={result.title}
-                    className="w-16 h-16 rounded-xl object-cover shadow-md"
+                    className="w-16 h-16 rounded object-cover"
                   />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center rounded-xl">
-                    <Play className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transform scale-50 group-hover:scale-100 transition-all duration-300" fill="white" />
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center rounded">
+                    <Play className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transform scale-50 group-hover:scale-100 transition-all duration-200" fill="white" />
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                  <h3 className="font-semibold truncate group-hover:text-primary transition-colors">
                     {result.title}
                   </h3>
-                  <p className="text-sm text-gray-600 truncate">{result.description}</p>
+                  <p className="text-sm text-muted-foreground truncate">{result.description}</p>
                 </div>
                 {result.duration && (
-                  <Badge variant="secondary" className="flex-shrink-0 bg-blue-100 text-blue-700 border-0 rounded-lg px-3 py-1">
+                  <Badge variant="secondary" className="flex-shrink-0">
                     {result.duration}
                   </Badge>
                 )}
@@ -482,29 +472,27 @@ ${contentToAnalyze}`;
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {categoryResults.map((result) => (
-              <Card key={result.id} className="hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 shadow-lg rounded-2xl overflow-hidden group">
-                <CardHeader className="p-6">
+              <Card key={result.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                <CardHeader className="p-4">
                   <div className="flex space-x-4">
                     {result.thumbnail && (
                       <img 
                         src={result.thumbnail} 
                         alt={result.title}
-                        className="w-20 h-20 object-cover rounded-xl flex-shrink-0 shadow-md group-hover:scale-105 transition-transform duration-300"
+                        className="w-20 h-20 object-cover rounded flex-shrink-0"
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <CardTitle className="text-lg line-clamp-2 mb-3 group-hover:text-blue-600 transition-colors leading-tight">
+                      <CardTitle className="text-base line-clamp-2 mb-2">
                         {result.title}
                       </CardTitle>
-                      <CardDescription className="text-sm line-clamp-2 text-gray-600 leading-relaxed">
+                      <CardDescription className="text-sm line-clamp-2">
                         {result.description}
                       </CardDescription>
-                      <div className="flex items-center justify-between mt-4">
-                        <span className="text-xs font-medium text-blue-600 bg-blue-50 rounded-full px-3 py-1">
-                          {result.source}
-                        </span>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-xs text-muted-foreground">{result.source}</span>
                         {result.publishedAt && (
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-muted-foreground">
                             {new Date(result.publishedAt).toLocaleDateString()}
                           </span>
                         )}
@@ -529,17 +517,16 @@ ${contentToAnalyze}`;
   };
 
   const SearchResultCard = ({ result }: { result: SearchResult }) => (
-    <Card key={result.id} className="hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 shadow-lg rounded-2xl overflow-hidden group">
-      <CardHeader className="p-6">
+    <Card key={result.id} className="hover:shadow-lg transition-all duration-200 cursor-pointer">
+      <CardHeader>
         <div className="flex justify-between items-start space-x-4">
-          <div className="space-y-3 flex-1 min-w-0">
+          <div className="space-y-2 flex-1 min-w-0">
             <a href={result.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
-              <CardTitle className="text-xl hover:text-blue-600 transition-colors flex items-center gap-3 group">
-                {result.title} 
-                <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transform group-hover:translate-x-1 transition-all" />
+              <CardTitle className="text-lg hover:text-primary transition-colors flex items-center gap-2">
+                {result.title} <ExternalLink className="h-4 w-4" />
               </CardTitle>
             </a>
-            <CardDescription className="text-base leading-relaxed line-clamp-2 text-gray-600">
+            <CardDescription className="text-base leading-relaxed line-clamp-2">
               {result.description}
             </CardDescription>
           </div>
@@ -548,32 +535,24 @@ ${contentToAnalyze}`;
               <img 
                 src={result.thumbnail} 
                 alt={result.title}
-                className="w-24 h-24 object-cover rounded-xl shadow-md group-hover:scale-105 transition-transform duration-300"
+                className="w-24 h-24 object-cover rounded-lg"
               />
             </div>
           )}
         </div>
-        <div className="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
-          <div className="flex items-center space-x-4 text-sm text-gray-500">
-            <span className="font-medium text-gray-700 bg-gray-100 rounded-full px-3 py-1">{result.source}</span>
+        <div className="flex items-center justify-between pt-4">
+          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+            <span className="font-medium">{result.source}</span>
             {result.publishedAt && (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1">
                 <Clock className="h-4 w-4" />
                 <span>{new Date(result.publishedAt).toLocaleDateString()}</span>
               </div>
             )}
-            {result.duration && (
-              <span className="bg-blue-100 text-blue-700 rounded-full px-2 py-1 text-xs font-medium">
-                {result.duration}
-              </span>
-            )}
-            {result.views && (
-              <span className="text-gray-500">
-                {result.views.toLocaleString()} views
-              </span>
-            )}
+            {result.duration && <span>{result.duration}</span>}
+            {result.views && <span>{result.views.toLocaleString()} views</span>}
           </div>
-          <Badge variant="secondary" className="capitalize bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 rounded-lg">
+          <Badge variant="secondary" className="capitalize">
             {result.type === 'ai' ? 'AI Answer' : result.type}
           </Badge>
         </div>
@@ -582,52 +561,38 @@ ${contentToAnalyze}`;
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-100/20 space-y-8 p-4">
-      {/* Background Elements */}
-      <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none" />
-      
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 space-y-8 p-4">
       {/* Search Header */}
-      <div className="text-center space-y-6 max-w-4xl mx-auto relative z-10">
-        <div className="flex items-center justify-center space-x-3 mb-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg">
-            <Search className="h-7 w-7 text-white" />
-          </div>
-          <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            ThinkSearch
-          </h1>
-        </div>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-          Intelligent multi-source search with dual AI-powered insights and comprehensive results
+      <div className="text-center space-y-4 max-w-4xl mx-auto">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          ThinkSearch
+        </h1>
+        <p className="text-muted-foreground text-lg">
+          Intelligent multi-source search with dual AI-powered insights
         </p>
       </div>
 
       {/* Search Bar */}
-      <div className="max-w-3xl mx-auto relative z-10">
+      <div className="max-w-2xl mx-auto">
         <div className="relative">
-          <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
-            placeholder="Search for anything... (e.g., 'artificial intelligence', 'quantum computing', 'modern architecture')"
+            placeholder="Search for anything... (e.g., 'artificial intelligence', 'quantum computing')"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-14 pr-24 h-16 text-lg rounded-2xl border-2 border-gray-200 focus:border-blue-500 shadow-2xl bg-white/80 backdrop-blur-sm"
+            className="pl-12 pr-20 h-14 text-lg rounded-2xl border-2 focus:border-primary shadow-lg"
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
           />
           <Button
             onClick={handleSearch}
             disabled={!searchQuery.trim() || isLoading}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-xl px-8 h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-xl px-6"
             size="lg"
           >
             {isLoading ? (
-              <div className="flex items-center space-x-2">
-                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                <span>Searching</span>
-              </div>
+              <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
             ) : (
-              <div className="flex items-center space-x-2">
-                <Search className="h-4 w-4" />
-                <span>Search</span>
-              </div>
+              <Search className="h-4 w-4" />
             )}
           </Button>
         </div>
@@ -635,38 +600,38 @@ ${contentToAnalyze}`;
 
       {/* Search Results */}
       {searchQuery && (
-        <div className="max-w-7xl mx-auto relative z-10">
+        <div className="max-w-7xl mx-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 mb-8 bg-white/80 backdrop-blur-sm border border-gray-200 p-2 rounded-2xl shadow-lg">
-              <TabsTrigger value="all" className="flex items-center space-x-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 mb-8 bg-muted/50 p-1 rounded-lg">
+              <TabsTrigger value="all" className="flex items-center space-x-2">
                 <Globe className="h-4 w-4" />
                 <span>All</span>
               </TabsTrigger>
-              <TabsTrigger value="images" className="flex items-center space-x-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300">
+              <TabsTrigger value="images" className="flex items-center space-x-2">
                 <Image className="h-4 w-4" />
                 <span>Images</span>
               </TabsTrigger>
-              <TabsTrigger value="videos" className="flex items-center space-x-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300">
+              <TabsTrigger value="videos" className="flex items-center space-x-2">
                 <Video className="h-4 w-4" />
                 <span>Videos</span>
               </TabsTrigger>
-              <TabsTrigger value="news" className="flex items-center space-x-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300">
+              <TabsTrigger value="news" className="flex items-center space-x-2">
                 <Newspaper className="h-4 w-4" />
                 <span>News</span>
               </TabsTrigger>
-              <TabsTrigger value="music" className="flex items-center space-x-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300">
+              <TabsTrigger value="music" className="flex items-center space-x-2">
                 <Headphones className="h-4 w-4" />
                 <span>Music</span>
               </TabsTrigger>
-              <TabsTrigger value="wikipedia" className="flex items-center space-x-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300">
+              <TabsTrigger value="wikipedia" className="flex items-center space-x-2">
                 <BookOpen className="h-4 w-4" />
                 <span>Wikipedia</span>
               </TabsTrigger>
-              <TabsTrigger value="google" className="flex items-center space-x-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300">
+              <TabsTrigger value="google" className="flex items-center space-x-2">
                 <Globe className="h-4 w-4" />
                 <span>Web</span>
               </TabsTrigger>
-              <TabsTrigger value="dictionary" className="flex items-center space-x-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300">
+              <TabsTrigger value="dictionary" className="flex items-center space-x-2">
                 <FileText className="h-4 w-4" />
                 <span>Dictionary</span>
               </TabsTrigger>
@@ -674,29 +639,30 @@ ${contentToAnalyze}`;
 
             <TabsContent value={activeTab} className="space-y-6">
               {isLoading ? (
-                <div className="text-center py-20">
-                  <div className="flex justify-center mb-6">
-                    <div className="animate-spin h-16 w-16 border-4 border-blue-600 border-t-transparent rounded-full"></div>
-                  </div>
-                  <p className="text-xl text-gray-600 mb-2">
+                <div className="text-center py-16">
+                  <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                  <p className="text-muted-foreground text-lg">
                     {activeTab === 'all' ? 'Searching across all sources...' : `Searching for ${activeTab}...`}
                   </p>
-                  <p className="text-gray-500">This may take a few moments</p>
                 </div>
               ) : filteredResults.length > 0 || thinkSearchAI || inputMeanAI ? (
                 renderResultsByCategory()
               ) : (
-                <div className="text-center py-20">
-                  <div className="space-y-6">
-                    <div className="flex justify-center">
-                      <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-r from-gray-200 to-gray-300">
-                        <Search className="h-10 w-10 text-gray-400" />
-                      </div>
-                    </div>
-                    <h3 className="text-2xl font-semibold text-gray-600">
+                <div className="text-center py-16">
+                  <div className="space-y-4">
+                    {activeTab === 'all' && <Search className="h-20 w-20 mx-auto text-muted-foreground opacity-50" />}
+                    {activeTab === 'images' && <Image className="h-20 w-20 mx-auto text-muted-foreground opacity-50" />}
+                    {activeTab === 'videos' && <Video className="h-20 w-20 mx-auto text-muted-foreground opacity-50" />}
+                    {activeTab === 'news' && <Newspaper className="h-20 w-20 mx-auto text-muted-foreground opacity-50" />}
+                    {activeTab === 'music' && <Headphones className="h-20 w-20 mx-auto text-muted-foreground opacity-50" />}
+                    {activeTab === 'wikipedia' && <BookOpen className="h-20 w-20 mx-auto text-muted-foreground opacity-50" />}
+                    {activeTab === 'google' && <Globe className="h-20 w-20 mx-auto text-muted-foreground opacity-50" />}
+                    {activeTab === 'dictionary' && <FileText className="h-20 w-20 mx-auto text-muted-foreground opacity-50" />}
+                    
+                    <h3 className="text-2xl font-semibold text-muted-foreground">
                       No {activeTab === 'all' ? 'results' : activeTab} found
                     </h3>
-                    <p className="text-gray-500 max-w-md mx-auto text-lg">
+                    <p className="text-muted-foreground max-w-md mx-auto">
                       No {activeTab === 'all' ? 'results' : `${activeTab} results`} found for "{searchQuery}". 
                       Try different keywords or check your spelling.
                     </p>
